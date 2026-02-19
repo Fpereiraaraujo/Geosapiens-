@@ -11,4 +11,5 @@ public interface AssetPortOut {
     Asset save(Asset asset);
     Optional<Asset> findById(UUID id);
     void deleteById(UUID id);
+    Optional<Asset> findBySerialNumber(String serialNumber);
 }

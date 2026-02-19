@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -32,45 +33,48 @@ public class AssetUseCase implements AssetPortIn {
     @Override
     public Asset save(Asset asset) {
         validateAsset(asset);
+        checkDuplicateSerialNumber(asset);
         return assetPortOut.save(asset);
     }
 
     @Override
     public Asset update(UUID id, Asset asset) {
-
         Asset existingAsset = findById(id);
-
         validateAsset(asset);
-
-
         asset.setId(existingAsset.getId());
+        checkDuplicateSerialNumber(asset);
         return assetPortOut.save(asset);
     }
 
     @Override
     public void deleteById(UUID id) {
         if (assetPortOut.findById(id).isEmpty()) {
-            throw new BusinessException("impossível deletar: aativo inexistente.");
+            throw new BusinessException("impossível deletar: ativo inexistente.");
         }
         assetPortOut.deleteById(id);
     }
 
-
     private void validateAsset(Asset asset) {
         if (!StringUtils.hasText(asset.getName())) {
-            throw new BusinessException("o nome do ativo e obrigatório.");
+            throw new BusinessException("o nome do ativo é obrigatório.");
         }
-
         if (!StringUtils.hasText(asset.getSerialNumber())) {
-            throw new BusinessException("o numero de série e obrigatório.");
+            throw new BusinessException("o número de série é obrigatório.");
         }
-
         if (asset.getAcquisitionDate() == null) {
-            throw new BusinessException("a data de aquisição e obrigatória.");
+            throw new BusinessException("a data de aquisição é obrigatória.");
         }
-
         if (asset.getAcquisitionDate().isAfter(LocalDate.now())) {
-            throw new BusinessException("a data de aquisição nao pode ser no futuro.");
+            throw new BusinessException("a data de aquisição não pode estar no futuro.");
+        }
+    }
+
+    private void checkDuplicateSerialNumber(Asset asset) {
+        Optional<Asset> existingAsset = assetPortOut.findBySerialNumber(asset.getSerialNumber());
+        if (existingAsset.isPresent()) {
+            if (asset.getId() == null || !existingAsset.get().getId().equals(asset.getId())) {
+                throw new BusinessException("já existe um ativo cadastrado com o número de série: " + asset.getSerialNumber());
+            }
         }
     }
 }

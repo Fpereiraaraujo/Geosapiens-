@@ -24,6 +24,8 @@ public class AssetRepositoryImp implements AssetPortOut {
                 .collect(Collectors.toList());
     }
 
+
+
     @Override
     public Asset save(Asset asset) {
         AssetEntity entity = toEntity(asset);
@@ -39,6 +41,12 @@ public class AssetRepositoryImp implements AssetPortOut {
     @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
+    }
+
+    @Override
+    public Optional<Asset> findBySerialNumber(String serialNumber) {
+        return jpaRepository.findBySerialNumber(serialNumber)
+                .map(this::toDomain);
     }
 
 
